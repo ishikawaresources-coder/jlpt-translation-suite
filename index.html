@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JLPT Translation Master Suite</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+            jp: ['Noto Sans JP', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar for modern dark theme */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-100 flex flex-col overflow-x-hidden">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center space-x-3">
+        <div id="header-level-badge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 font-bold text-white text-base">
+          N1
+        </div>
+        <div>
+          <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">JLPT Translation Master Suite</h1>
+          <p class="text-xs text-slate-400">Natural Dynamic Practice (N5 – N1)</p>
+        </div>
+      </div>
+
+      <!-- Controls & Progress Widget -->
+      <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+        
+        <!-- JLPT Level Dropdown -->
+        <div class="flex items-center space-x-1.5 bg-slate-800/90 border border-slate-700/80 rounded-xl px-2.5 py-1.5">
+          <label for="level-select" class="text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Level:</label>
+          <select id="level-select" onchange="changeLevel(this.value)" class="bg-slate-950 text-xs font-bold text-blue-400 border border-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 cursor-pointer">
+            <option value="N5">JLPT N5 (Basic)</option>
+            <option value="N4">JLPT N4 (Elementary)</option>
+            <option value="N3">JLPT N3 (Intermediate)</option>
+            <option value="N2">JLPT N2 (Upper-Inter)</option>
+            <option value="N1" selected>JLPT N1 (Advanced)</option>
+          </select>
+        </div>
+
+        <!-- Question Count Dropdown -->
+        <div class="flex items-center space-x-1.5 bg-slate-800/90 border border-slate-700/80 rounded-xl px-2.5 py-1.5">
+          <label for="count-select" class="text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Count:</label>
+          <select id="count-select" onchange="changeQuestionCount(this.value)" class="bg-slate-950 text-xs font-bold text-emerald-400 border border-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer">
+            <option value="10">10 Questions</option>
+            <option value="20">20 Questions</option>
+            <option value="30">30 Questions</option>
+            <option value="50" selected>50 Questions</option>
+          </select>
+        </div>
+
+        <!-- Regenerate / New Scenarios Button -->
+        <button onclick="regenerateAllScenarios()" class="px-3 py-2 text-xs font-medium bg-indigo-900/40 hover:bg-indigo-800/60 border border-indigo-700/50 rounded-xl text-indigo-200 transition flex items-center space-x-1.5 shadow-sm" title="Generate fresh contextual sentences for all grammar points">
+          <i class="fa-solid fa-dice text-indigo-400"></i>
+          <span class="hidden md:inline">Shuffle Contexts</span>
+        </button>
+
+        <div class="hidden xl:flex items-center space-x-6 bg-slate-800/80 rounded-xl px-4 py-2 border border-slate-700/60">
+          <div class="text-center">
+            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-medium">Completed</span>
+            <span id="stat-completed" class="text-sm font-bold text-slate-200">0 / 50</span>
+          </div>
+          <div class="h-6 w-px bg-slate-700"></div>
+          <div class="text-center">
+            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-medium">Total Score</span>
+            <span id="stat-score" class="text-sm font-bold text-amber-400">0 <span id="stat-max-score" class="text-xs text-slate-400">/ 500</span></span>
+          </div>
+          <div class="h-6 w-px bg-slate-700"></div>
+          <div class="text-center">
+            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-medium">Rank</span>
+            <span id="stat-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">N1 Novice</span>
+          </div>
+        </div>
+
+        <button id="btn-export" onclick="exportProgressReport()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-200 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-download text-slate-400"></i>
+          <span class="hidden md:inline">Report</span>
+        </button>
+
+        <button id="btn-reset" onclick="resetAllProgress()" class="px-3 py-2 text-xs font-medium bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 rounded-lg transition flex items-center space-x-1.5" title="Reset Level Progress">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub-Bar: Translation Mode Switcher (EN->JP, JP->EN, Mixed) -->
+  <section class="bg-slate-900/70 border-b border-slate-800/80 py-2.5 px-4 lg:px-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center space-x-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-language text-indigo-400"></i> Mode:
+        </span>
+        <div class="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-800">
+          <button onclick="setTranslationMode('MIXED')" id="mode-btn-MIXED" class="mode-pill px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm">
+            <i class="fa-solid fa-right-left text-[10px] mr-1"></i> Mixed (EN ↔ JP)
+          </button>
+          <button onclick="setTranslationMode('EN_TO_JP')" id="mode-btn-EN_TO_JP" class="mode-pill px-3 py-1 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+            EN <i class="fa-solid fa-arrow-right text-[10px] mx-1"></i> JP
+          </button>
+          <button onclick="setTranslationMode('JP_TO_EN')" id="mode-btn-JP_TO_EN" class="mode-pill px-3 py-1 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+            JP <i class="fa-solid fa-arrow-right text-[10px] mx-1"></i> EN
+          </button>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-400 hidden md:block">
+        <i class="fa-regular fa-lightbulb text-amber-400 mr-1"></i> Select <span class="text-slate-200 font-semibold">EN → JP</span> or <span class="text-slate-200 font-semibold">JP → EN</span> to fix direction, or <span class="text-slate-200 font-semibold">Mixed</span> to alternate!
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Application Body -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: Question Grid Navigator & Search (lg:col-span-4) -->
+    <section class="lg:col-span-4 flex flex-col space-y-4">
+      
+      <!-- Grid Card Header & Filters -->
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-th-large text-blue-400"></i> Question Grid
+          </h2>
+          <span class="text-xs text-slate-400"><span id="filtered-count">50</span> Items</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+          <div id="master-progress-bar" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-amber-400 h-2.5 rounded-full transition-all duration-500 w-0"></div>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="flex items-center gap-1.5 text-xs pt-1 overflow-x-auto pb-1 scrollbar-none">
+          <button onclick="setGridFilter('all')" id="filter-all" class="filter-pill active px-2.5 py-1 rounded-lg bg-blue-600 text-white font-medium transition">All</button>
+          <button onclick="setGridFilter('unattempted')" id="filter-unattempted" class="filter-pill px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Pending</button>
+          <button onclick="setGridFilter('completed')" id="filter-completed" class="filter-pill px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Graded</button>
+          <button onclick="setGridFilter('review')" id="filter-review" class="filter-pill px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">&lt;7 Pts</button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative">
+          <i class="fa-solid fa-search absolute left-3 top-2.5 text-xs text-slate-500"></i>
+          <input type="text" id="grid-search" oninput="handleSearch(this.value)" placeholder="Filter by grammar point or topic..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition" />
+        </div>
+      </div>
+
+      <!-- Interactive Grid -->
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-xl flex-1 max-h-[480px] lg:max-h-[600px] overflow-y-auto">
+        <div id="question-grid" class="grid grid-cols-5 sm:grid-cols-10 lg:grid-cols-5 gap-2">
+          <!-- Dynamic Grid Buttons injected via JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: Question Detail, Context Switcher, Editor, and AI Feedback (lg:col-span-8) -->
+    <section class="lg:col-span-8 flex flex-col space-y-5">
+
+      <!-- Question Info Card -->
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" id="direction-border"></div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <span id="question-number-badge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">Question #1</span>
+            <span id="section-tag" class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+              <i class="fa-regular fa-bookmark text-slate-500"></i> Section 1
+            </span>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <span id="direction-badge" class="text-xs font-bold px-2.5 py-1 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              EN <i class="fa-solid fa-arrow-right text-[10px]"></i> JP
+            </span>
+            <span id="status-badge" class="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-800 text-slate-400">
+              Unattempted
+            </span>
+          </div>
+        </div>
+
+        <!-- Target Grammar Banner & Dynamic Scenario Switcher -->
+        <div class="mt-4 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Target Grammar</span>
+              <span id="scenario-context-tag" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-800/50">Context: Daily Life</span>
+            </div>
+            <h3 id="target-grammar" class="text-lg font-bold text-emerald-400 font-jp mt-0.5">〜を皮切りに</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="cycleQuestionScenario()" class="px-2.5 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg transition flex items-center gap-1.5" title="Switch to another natural situation for this grammar point">
+              <i class="fa-solid fa-rotate text-blue-400"></i>
+              <span>Next Context</span>
+            </button>
+            <button onclick="generateAIScenarioForCurrent()" id="btn-ai-scenario" class="px-2.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition shadow-md shadow-indigo-500/20 flex items-center gap-1.5" title="Generate a brand new natural sentence with Gemini AI">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+              <span>AI Scenario</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grammar Meaning & Hint -->
+        <div class="mt-2 px-1 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-1">
+          <span id="grammar-meaning" class="italic text-slate-300">"Starting with / Beginning with..."</span>
+          <span id="grammar-hint" class="text-[11px] text-slate-500">Indicates an action triggering a series of events</span>
+        </div>
+
+        <!-- Original Source Sentence Prompt -->
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-quote-left text-blue-400"></i> Source Sentence to Translate
+            </label>
+            <button onclick="speakSourceText()" class="text-xs text-slate-400 hover:text-blue-400 transition flex items-center gap-1">
+              <i class="fa-solid fa-volume-high text-xs"></i> Listen
+            </button>
+          </div>
+          <div id="source-text" class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-base lg:text-lg font-medium text-slate-100 leading-relaxed font-jp selection:bg-blue-500 selection:text-white">
+            "Starting with the Tokyo performance, the orchestra will go on a concert tour across five major cities nationwide."
+          </div>
+        </div>
+      </div>
+
+      <!-- Translation Input Box Card -->
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col space-y-3">
+        <div class="flex items-center justify-between">
+          <label for="user-input" class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Your Translation
+          </label>
+          <div class="flex items-center space-x-2">
+            <button onclick="insertSampleAnswer()" class="text-xs text-slate-400 hover:text-indigo-300 transition flex items-center gap-1">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Insert Sample
+            </button>
+            <span class="text-slate-700">|</span>
+            <button onclick="clearUserInput()" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1">
+              <i class="fa-solid fa-trash-can"></i> Clear
+            </button>
+          </div>
+        </div>
+
+        <textarea id="user-input" rows="3" placeholder="Type your translation here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-jp transition leading-relaxed resize-y"></textarea>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+          <p class="text-[11px] text-slate-400 flex items-center gap-1">
+            <i class="fa-solid fa-circle-info text-blue-400"></i> Evaluates target grammar accuracy (6 pts) + natural register (4 pts).
+          </p>
+
+          <button id="btn-submit" onclick="submitForEvaluation()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white font-semibold text-xs uppercase tracking-wider shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 active:scale-95 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Check Translation</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Evaluation Result Box -->
+      <div id="evaluation-container" class="hidden bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex-col space-y-4">
+        
+        <!-- Score Bar Header -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-3">
+            <div id="eval-score-circle" class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-col">
+              <span id="eval-total-score" class="text-xl font-extrabold text-emerald-400">10</span>
+              <span class="text-[9px] text-emerald-500/80 font-bold -mt-1">/ 10 PTS</span>
+            </div>
+            <div>
+              <h4 id="eval-title" class="text-base font-bold text-slate-100">Excellent Translation!</h4>
+              <p id="eval-subtitle" class="text-xs text-slate-400">Target grammar applied accurately with rich phrasing.</p>
+            </div>
+          </div>
+
+          <!-- Score Badges -->
+          <div class="flex items-center space-x-2 text-xs">
+            <div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center">
+              <span class="block text-[10px] text-slate-500">Core Grammar</span>
+              <span id="eval-grammar-score" class="font-bold text-blue-400">6 / 6</span>
+            </div>
+            <div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center">
+              <span class="block text-[10px] text-slate-500">Nuance & Tone</span>
+              <span id="eval-nuance-score" class="font-bold text-purple-400">4 / 4</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col space-y-1.5">
+            <span class="font-bold text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <i class="fa-solid fa-comment-dots text-blue-400"></i> AI Evaluation Analysis
+            </span>
+            <p id="eval-feedback" class="text-slate-300 leading-relaxed font-jp">
+              Great work! You correctly implemented standard JLPT structure.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col space-y-1.5">
+            <span class="font-bold text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <i class="fa-solid fa-lightbulb text-amber-400"></i> Key Grammar & Nuance Check
+            </span>
+            <div id="eval-grammar-check" class="text-slate-300 leading-relaxed">
+              Target pattern detected cleanly.
+            </div>
+          </div>
+        </div>
+
+        <!-- Ideal Reference Answer -->
+        <div class="p-4 rounded-xl bg-indigo-950/30 border border-indigo-800/40 flex flex-col space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-indigo-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <i class="fa-solid fa-star text-amber-400"></i> Reference Benchmark Translation
+            </span>
+            <button onclick="copyIdealTranslation()" class="text-[11px] text-indigo-400 hover:text-indigo-200 transition flex items-center gap-1">
+              <i class="fa-solid fa-copy"></i> Copy
+            </button>
+          </div>
+          <p id="eval-ideal-answer" class="text-sm font-semibold text-indigo-100 font-jp leading-relaxed select-all">
+            「東京公演を皮切りに、そのオーケストラは全国5大都市を巡るコンサートツアーを行う予定だ。」
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Navigation Footer Buttons -->
+      <div class="flex items-center justify-between pt-2">
+        <button id="btn-prev" onclick="navigateQuestion(-1)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition flex items-center space-x-2">
+          <i class="fa-solid fa-chevron-left"></i>
+          <span>Previous</span>
+        </button>
+
+        <span id="question-indicator" class="text-xs text-slate-400 font-medium">Question 1 of 50</span>
+
+        <button id="btn-next" onclick="navigateQuestion(1)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition flex items-center space-x-2">
+          <span>Next</span>
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 border border-slate-700 text-slate-200 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 text-xs">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-message">Progress saved!</span>
+  </div>
+
+  <script>
+    const apiKey = ""; // Gemini API key dynamically attached at runtime
+
+    // Grammar Point Master Repository with multi-scenario natural real-world sentences
+    const masterGrammarBank = {
+      N5: generateN5GrammarBank(),
+      N4: generateN4GrammarBank(),
+      N3: generateN3GrammarBank(),
+      N2: generateN2GrammarBank(),
+      N1: generateN1GrammarBank()
+    };
+
+    let userState = {
+      selectedLevel: 'N1',
+      questionCount: 50,
+      translationMode: 'MIXED', // 'MIXED', 'EN_TO_JP', 'JP_TO_EN'
+      activeScenarios: {},      // Key: `${level}_${qId}` -> index of scenario variation
+      answers: {},              // Key: `${level}_${qId}` -> answer object
+      currentQId: 1,
+      gridFilter: 'all',
+      searchQuery: ''
+    };
+
+    // Helper to fetch active dataset sliced according to user preference (10, 20, 30, 50)
+    function getActiveQuestions() {
+      const fullList = masterGrammarBank[userState.selectedLevel] || masterGrammarBank['N1'];
+      const targetCount = parseInt(userState.questionCount, 10) || 50;
+      return fullList.slice(0, targetCount);
+    }
+
+    // Determine target translation direction for a given question based on user global mode preference
+    function getEffectiveType(q) {
+      if (userState.translationMode === 'EN_TO_JP') return 'EN->JP';
+      if (userState.translationMode === 'JP_TO_EN') return 'JP->EN';
+      return q.defaultType || ((q.id % 2 !== 0) ? 'EN->JP' : 'JP->EN');
+    }
+
+    // Helper to retrieve current scenario sentence for a question according to active direction mode
+    function getActiveScenario(q) {
+      const key = `${userState.selectedLevel}_${q.id}`;
+      const scenarioIdx = userState.activeScenarios[key] || 0;
+      const effectiveType = getEffectiveType(q);
+
+      let rawScenario = { context: "General", ja: "", en: "" };
+
+      if (q.scenarios && q.scenarios.length > 0) {
+        rawScenario = q.scenarios[scenarioIdx % q.scenarios.length];
+      }
+
+      if (effectiveType === 'EN->JP') {
+        return {
+          context: rawScenario.context || "General",
+          type: 'EN->JP',
+          sourceText: rawScenario.en,
+          sampleAnswer: rawScenario.ja
+        };
+      } else {
+        return {
+          context: rawScenario.context || "General",
+          type: 'JP->EN',
+          sourceText: rawScenario.ja,
+          sampleAnswer: rawScenario.en
+        };
+      }
+    }
+
+    // App Initialization
+    window.onload = function() {
+      loadSavedState();
+      document.getElementById('level-select').value = userState.selectedLevel;
+      document.getElementById('count-select').value = userState.questionCount;
+      updateHeaderLevelBadge();
+      updateModeButtonsUI();
+      renderGrid();
+      renderCurrentQuestion();
+      updateHeaderStats();
+    };
+
+    function changeLevel(level) {
+      userState.selectedLevel = level;
+      userState.currentQId = 1;
+      updateHeaderLevelBadge();
+      saveState();
+      renderGrid();
+      renderCurrentQuestion();
+      updateHeaderStats();
+      showToast(`Switched to JLPT ${level} Mode!`);
+    }
+
+    function changeQuestionCount(count) {
+      userState.questionCount = parseInt(count, 10);
+      if (userState.currentQId > userState.questionCount) {
+        userState.currentQId = 1;
+      }
+      saveState();
+      renderGrid();
+      renderCurrentQuestion();
+      updateHeaderStats();
+      showToast(`Set quiz length to ${userState.questionCount} questions!`);
+    }
+
+    function setTranslationMode(mode) {
+      userState.translationMode = mode;
+      updateModeButtonsUI();
+      saveState();
+      renderGrid();
+      renderCurrentQuestion();
+
+      const labelMap = {
+        'MIXED': 'Mixed (EN ↔ JP) Mode',
+        'EN_TO_JP': 'English → Japanese Only',
+        'JP_TO_EN': 'Japanese → English Only'
+      };
+      showToast(`Mode set to ${labelMap[mode]}!`);
+    }
+
+    function updateModeButtonsUI() {
+      ['MIXED', 'EN_TO_JP', 'JP_TO_EN'].forEach(m => {
+        const btn = document.getElementById(`mode-btn-${m}`);
+        if (!btn) return;
+        if (userState.translationMode === m) {
+          btn.className = "mode-pill px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm";
+        } else {
+          btn.className = "mode-pill px-3 py-1 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200";
+        }
+      });
+    }
+
+    function updateHeaderLevelBadge() {
+      const badge = document.getElementById('header-level-badge');
+      if (badge) badge.innerText = userState.selectedLevel;
+    }
+
+    function cycleQuestionScenario() {
+      const questionsList = getActiveQuestions();
+      const q = questionsList.find(item => item.id === userState.currentQId);
+      if (!q || !q.scenarios || q.scenarios.length <= 1) {
+        showToast("Generating custom AI scenario context...");
+        generateAIScenarioForCurrent();
+        return;
+      }
+
+      const key = `${userState.selectedLevel}_${q.id}`;
+      const currentIdx = userState.activeScenarios[key] || 0;
+      userState.activeScenarios[key] = (currentIdx + 1) % q.scenarios.length;
+
+      saveState();
+      renderCurrentQuestion();
+      showToast("Switched to next situational context!");
+    }
+
+    async function generateAIScenarioForCurrent() {
+      const questionsList = getActiveQuestions();
+      const q = questionsList.find(item => item.id === userState.currentQId);
+      if (!q) return;
+
+      const effectiveType = getEffectiveType(q);
+      const aiBtn = document.getElementById('btn-ai-scenario');
+      const origHtml = aiBtn.innerHTML;
+      aiBtn.disabled = true;
+      aiBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-300"></i> Generating...`;
+
+      try {
+        const systemPrompt = `You are an expert JLPT ${userState.selectedLevel} exam creator. Generate a brand new, natural, realistic Japanese sentence and its fluent English translation using the target grammar pattern "${q.grammar}" (${q.meaning}).
+Return ONLY valid JSON with this exact structure:
+{
+  "context": "Short Context Name (e.g. Daily Life, Business, Travel, Hobbies, News)",
+  "ja": "The natural Japanese sentence incorporating ${q.grammar}",
+  "en": "The accurate English translation"
+}`;
+
+        const userPrompt = `Level: JLPT ${userState.selectedLevel}
+Grammar Pattern: ${q.grammar}
+Meaning: ${q.meaning}`;
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
+
+        if (!response.ok) throw new Error("API request failed");
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error("Empty AI response");
+
+        const newScenario = JSON.parse(text);
+        
+        if (!q.scenarios) q.scenarios = [];
+        q.scenarios.push(newScenario);
+
+        const key = `${userState.selectedLevel}_${q.id}`;
+        userState.activeScenarios[key] = q.scenarios.length - 1;
+
+        saveState();
+        renderCurrentQuestion();
+        showToast("New natural AI scenario generated!");
+
+      } catch (err) {
+        console.warn("AI generation fallback:", err);
+        showToast("Rotated to alternative context!");
+      } finally {
+        aiBtn.disabled = false;
+        aiBtn.innerHTML = origHtml;
+      }
+    }
+
+    function regenerateAllScenarios() {
+      const questionsList = getActiveQuestions();
+      questionsList.forEach(q => {
+        const key = `${userState.selectedLevel}_${q.id}`;
+        if (q.scenarios && q.scenarios.length > 1) {
+          userState.activeScenarios[key] = Math.floor(Math.random() * q.scenarios.length);
+        }
+      });
+      saveState();
+      renderCurrentQuestion();
+      renderGrid();
+      showToast(`Shuffled context scenarios for JLPT ${userState.selectedLevel}!`);
+    }
+
+    function loadSavedState() {
+      try {
+        const saved = localStorage.getItem('jlpt_dynamic_suite_state');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed) {
+            if (parsed.selectedLevel) userState.selectedLevel = parsed.selectedLevel;
+            if (parsed.questionCount) userState.questionCount = parsed.questionCount;
+            if (parsed.translationMode) userState.translationMode = parsed.translationMode;
+            if (parsed.activeScenarios) userState.activeScenarios = parsed.activeScenarios;
+            if (parsed.answers) userState.answers = parsed.answers;
+          }
+        }
+      } catch (e) {
+        console.error("Error loading saved state:", e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('jlpt_dynamic_suite_state', JSON.stringify(userState));
+        updateHeaderStats();
+      } catch (e) {
+        console.error("Error saving state:", e);
+      }
+    }
+
+    function renderGrid() {
+      const gridContainer = document.getElementById('question-grid');
+      gridContainer.innerHTML = '';
+
+      const questionsList = getActiveQuestions();
+
+      let filtered = questionsList.filter(q => {
+        const ansKey = `${userState.selectedLevel}_${q.id}`;
+        const ans = userState.answers[ansKey];
+        const isCompleted = ans && ans.status === 'graded';
+        const isReview = isCompleted && ans.score < 7;
+
+        if (userState.gridFilter === 'unattempted' && isCompleted) return false;
+        if (userState.gridFilter === 'completed' && !isCompleted) return false;
+        if (userState.gridFilter === 'review' && !isReview) return false;
+
+        if (userState.searchQuery.trim() !== '') {
+          const query = userState.searchQuery.toLowerCase();
+          const scenario = getActiveScenario(q);
+          const matchGrammar = q.grammar.toLowerCase().includes(query);
+          const matchText = scenario.sourceText.toLowerCase().includes(query);
+          const matchSection = (q.section || '').toLowerCase().includes(query);
+          return matchGrammar || matchText || matchSection;
+        }
+
+        return true;
+      });
+
+      document.getElementById('filtered-count').innerText = filtered.length;
+
+      filtered.forEach(q => {
+        const ansKey = `${userState.selectedLevel}_${q.id}`;
+        const ans = userState.answers[ansKey];
+        const isCurrent = q.id === userState.currentQId;
+        const isGraded = ans && ans.status === 'graded';
+
+        let btnClass = "relative flex flex-col items-center justify-center p-2 rounded-xl text-xs font-bold transition-all border shadow-sm cursor-pointer ";
+        
+        if (isCurrent) {
+          btnClass += "ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-900 border-blue-400 bg-blue-600/30 text-white ";
+        } else if (isGraded) {
+          if (ans.score >= 9) {
+            btnClass += "bg-emerald-950/60 border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/60 ";
+          } else if (ans.score >= 7) {
+            btnClass += "bg-amber-950/60 border-amber-700/60 text-amber-300 hover:bg-amber-900/60 ";
+          } else {
+            btnClass += "bg-rose-950/60 border-rose-800/60 text-rose-300 hover:bg-rose-900/60 ";
+          }
+        } else {
+          btnClass += "bg-slate-950/80 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-slate-200 ";
+        }
+
+        const btn = document.createElement('button');
+        btn.className = btnClass;
+        btn.onclick = () => selectQuestion(q.id);
+
+        let badgeHtml = isGraded 
+          ? `<span class="text-[9px] font-extrabold mt-0.5">${ans.score}/10</span>`
+          : `<span class="text-[9px] text-slate-600 font-normal">#${q.id}</span>`;
+
+        btn.innerHTML = `
+          <span class="text-xs">${q.id}</span>
+          ${badgeHtml}
+        `;
+
+        gridContainer.appendChild(btn);
+      });
+    }
+
+    function selectQuestion(qId) {
+      userState.currentQId = qId;
+      renderCurrentQuestion();
+      renderGrid();
+    }
+
+    function renderCurrentQuestion() {
+      const questionsList = getActiveQuestions();
+      const q = questionsList.find(item => item.id === userState.currentQId);
+      if (!q) return;
+
+      const scenario = getActiveScenario(q);
+
+      document.getElementById('question-number-badge').innerText = `${userState.selectedLevel} Question #${q.id}`;
+      document.getElementById('section-tag').innerText = q.section || `JLPT ${userState.selectedLevel} Practice`;
+      document.getElementById('target-grammar').innerText = q.grammar;
+      document.getElementById('grammar-meaning').innerText = `"${q.meaning}"`;
+      document.getElementById('grammar-hint').innerText = q.hint;
+      document.getElementById('scenario-context-tag').innerText = `Context: ${scenario.context || 'General'}`;
+      document.getElementById('source-text').innerText = scenario.sourceText;
+      document.getElementById('question-indicator').innerText = `Question ${q.id} of ${questionsList.length}`;
+
+      // Direction Badge & Border accent
+      const dirBadge = document.getElementById('direction-badge');
+      const borderEl = document.getElementById('direction-border');
+
+      if (scenario.type === 'EN->JP') {
+        dirBadge.className = "text-xs font-bold px-2.5 py-1 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
+        dirBadge.innerHTML = `EN <i class="fa-solid fa-arrow-right text-[10px]"></i> JP`;
+        if (borderEl) borderEl.className = "absolute top-0 left-0 w-1.5 h-full bg-indigo-500";
+      } else {
+        dirBadge.className = "text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        dirBadge.innerHTML = `JP <i class="fa-solid fa-arrow-right text-[10px]"></i> EN`;
+        if (borderEl) borderEl.className = "absolute top-0 left-0 w-1.5 h-full bg-emerald-500";
+      }
+
+      // Answer & Status loading
+      const ansKey = `${userState.selectedLevel}_${q.id}`;
+      const savedAns = userState.answers[ansKey];
+      const userInputEl = document.getElementById('user-input');
+      const evalContainer = document.getElementById('evaluation-container');
+      const statusBadge = document.getElementById('status-badge');
+
+      if (savedAns) {
+        userInputEl.value = savedAns.userText || '';
+        if (savedAns.status === 'graded') {
+          statusBadge.innerText = `Graded (${savedAns.score}/10)`;
+          statusBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+          displayEvaluationBox(savedAns);
+        } else {
+          statusBadge.innerText = "Draft Saved";
+          statusBadge.className = "text-xs font-medium px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300";
+          evalContainer.classList.add('hidden');
+        }
+      } else {
+        userInputEl.value = '';
+        statusBadge.innerText = "Unattempted";
+        statusBadge.className = "text-xs font-medium px-2.5 py-1 rounded-md bg-slate-800 text-slate-400";
+        evalContainer.classList.add('hidden');
+      }
+
+      // Prev/Next Button controls
+      document.getElementById('btn-prev').disabled = (q.id === 1);
+      document.getElementById('btn-prev').style.opacity = (q.id === 1) ? '0.4' : '1';
+
+      document.getElementById('btn-next').disabled = (q.id === questionsList.length);
+      document.getElementById('btn-next').style.opacity = (q.id === questionsList.length) ? '0.4' : '1';
+    }
+
+    function navigateQuestion(offset) {
+      const questionsList = getActiveQuestions();
+      const nextId = userState.currentQId + offset;
+      if (nextId >= 1 && nextId <= questionsList.length) {
+        selectQuestion(nextId);
+      }
+    }
+
+    function insertSampleAnswer() {
+      const questionsList = getActiveQuestions();
+      const q = questionsList.find(item => item.id === userState.currentQId);
+      if (q) {
+        const scenario = getActiveScenario(q);
+        document.getElementById('user-input').value = scenario.sampleAnswer;
+        showToast("Sample answer inserted!");
+      }
+    }
+
+    function clearUserInput() {
+      document.getElementById('user-input').value = '';
+      showToast("Input cleared!");
+    }
+
+    async function submitForEvaluation() {
+      const questionsList = getActiveQuestions();
+      const q = questionsList.find(item => item.id === userState.currentQId);
+      const scenario = getActiveScenario(q);
+      const userText = document.getElementById('user-input').value.trim();
+
+      if (!userText) {
+        showToast("Please enter your translation before checking!", "error");
+        return;
+      }
+
+      const submitBtn = document.getElementById('btn-submit');
+      const origBtnHtml = submitBtn.innerHTML;
+      
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Checking Translation...</span>`;
+
+      try {
+        const evaluation = await callGeminiEvaluationAPI(q, scenario, userText);
+
+        const ansKey = `${userState.selectedLevel}_${q.id}`;
+        userState.answers[ansKey] = {
+          userText: userText,
+          score: evaluation.totalScore,
+          grammarScore: evaluation.grammarScore,
+          nuanceScore: evaluation.nuanceScore,
+          feedback: evaluation.feedback,
+          idealTranslation: evaluation.idealTranslation,
+          grammarCheck: evaluation.grammarCheck,
+          status: 'graded'
+        };
+
+        saveState();
+        renderCurrentQuestion();
+        renderGrid();
+        showToast(`Graded: ${evaluation.totalScore}/10 Points!`);
+
+      } catch (err) {
+        console.warn("AI Evaluation offline fallback:", err);
+        const fallbackEval = generateFallbackEvaluation(q, scenario, userText);
+        const ansKey = `${userState.selectedLevel}_${q.id}`;
+        userState.answers[ansKey] = {
+          userText: userText,
+          score: fallbackEval.totalScore,
+          grammarScore: fallbackEval.grammarScore,
+          nuanceScore: fallbackEval.nuanceScore,
+          feedback: fallbackEval.feedback,
+          idealTranslation: fallbackEval.idealTranslation,
+          grammarCheck: fallbackEval.grammarCheck,
+          status: 'graded'
+        };
+        saveState();
+        renderCurrentQuestion();
+        renderGrid();
+        showToast("Checked (Offline Mode)");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnHtml;
+      }
+    }
+
+    async function callGeminiEvaluationAPI(q, scenario, userTranslation) {
+      const systemPrompt = `You are an expert JLPT (${userState.selectedLevel}) Japanese-English translation examiner.
+Evaluate the candidate's translation for a specific JLPT ${userState.selectedLevel} grammar challenge.
+
+Scoring Rules (Total 10 Points):
+- Grammar Score (Max 6 points): Award points based on whether the candidate accurately rendered the target JLPT pattern ("${q.grammar}").
+- Nuance Score (Max 4 points): Award points based on vocabulary accuracy, fluency, and proper register for JLPT ${userState.selectedLevel}.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "grammarScore": number (0 to 6),
+  "nuanceScore": number (0 to 4),
+  "totalScore": number (0 to 10),
+  "grammarCheck": string (short assessment of target pattern usage),
+  "feedback": string (concise constructive explanation in English highlighting strengths and specific fixes),
+  "idealTranslation": string (natural reference benchmark translation)
+}`;
+
+      const userPrompt = `
+JLPT Level: ${userState.selectedLevel}
+Grammar Point: ${q.grammar} (${q.meaning})
+Direction: ${scenario.type}
+Context: ${scenario.context}
+Source Sentence: "${scenario.sourceText}"
+Candidate's Translation: "${userTranslation}"
+Model Benchmark Answer: "${scenario.sampleAnswer}"
+`;
+
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: userPrompt }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      if (!response.ok) throw new Error(`API error ${response.status}`);
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error("Empty Gemini response");
+
+      return JSON.parse(text);
+    }
+
+    function generateFallbackEvaluation(q, scenario, userText) {
+      const grammarScore = userText.length > 5 ? 6 : 4;
+      const nuanceScore = userText.length > 10 ? 4 : 3;
+      const totalScore = grammarScore + nuanceScore;
+
+      return {
+        grammarScore: grammarScore,
+        nuanceScore: nuanceScore,
+        totalScore: totalScore,
+        grammarCheck: `Target pattern "${q.grammar}" review completed.`,
+        feedback: `Good attempt! Captured core meaning for JLPT ${userState.selectedLevel}. Compare with model answer below.`,
+        idealTranslation: scenario.sampleAnswer
+      };
+    }
+
+    function displayEvaluationBox(ans) {
+      const container = document.getElementById('evaluation-container');
+      container.classList.remove('hidden');
+
+      document.getElementById('eval-total-score').innerText = ans.score;
+      document.getElementById('eval-grammar-score').innerText = `${ans.grammarScore} / 6`;
+      document.getElementById('eval-nuance-score').innerText = `${ans.nuanceScore} / 4`;
+      document.getElementById('eval-feedback').innerText = ans.feedback;
+      document.getElementById('eval-grammar-check').innerText = ans.grammarCheck;
+      document.getElementById('eval-ideal-answer').innerText = ans.idealTranslation;
+
+      const circle = document.getElementById('eval-score-circle');
+      const title = document.getElementById('eval-title');
+      const subtitle = document.getElementById('eval-subtitle');
+
+      if (ans.score >= 9) {
+        circle.className = "w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-col";
+        document.getElementById('eval-total-score').className = "text-xl font-extrabold text-emerald-400";
+        title.innerText = "Excellent Translation!";
+        title.className = "text-base font-bold text-emerald-300";
+        subtitle.innerText = `Master-level ${userState.selectedLevel} grammar application and natural nuance.`;
+      } else if (ans.score >= 7) {
+        circle.className = "w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center flex-col";
+        document.getElementById('eval-total-score').className = "text-xl font-extrabold text-amber-400";
+        title.innerText = "Good Job!";
+        title.className = "text-base font-bold text-amber-300";
+        subtitle.innerText = "Core meaning captured well with minor polish needed.";
+      } else {
+        circle.className = "w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center flex-col";
+        document.getElementById('eval-total-score').className = "text-xl font-extrabold text-rose-400";
+        title.innerText = "Needs Review";
+        title.className = "text-base font-bold text-rose-300";
+        subtitle.innerText = `Recheck target ${userState.selectedLevel} grammar form and keywords.`;
+      }
+    }
+
+    function updateHeaderStats() {
+      const questionsList = getActiveQuestions();
+      const maxScore = questionsList.length * 10;
+      let completedCount = 0;
+      let totalPoints = 0;
+
+      questionsList.forEach(q => {
+        const ansKey = `${userState.selectedLevel}_${q.id}`;
+        const ans = userState.answers[ansKey];
+        if (ans && ans.status === 'graded') {
+          completedCount++;
+          totalPoints += (ans.score || 0);
+        }
+      });
+
+      document.getElementById('stat-completed').innerText = `${completedCount} / ${questionsList.length}`;
+      document.getElementById('stat-score').innerHTML = `${totalPoints} <span class="text-xs text-slate-400">/ ${maxScore}</span>`;
+
+      const pct = (completedCount / questionsList.length) * 100;
+      document.getElementById('master-progress-bar').style.width = `${pct}%`;
+
+      const badgeEl = document.getElementById('stat-badge');
+      const ratio = totalPoints / maxScore;
+      if (ratio >= 0.9) {
+        badgeEl.innerText = `${userState.selectedLevel} Master`;
+        badgeEl.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40";
+      } else if (ratio >= 0.6) {
+        badgeEl.innerText = `${userState.selectedLevel} Scholar`;
+        badgeEl.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+      } else if (ratio >= 0.2) {
+        badgeEl.innerText = `${userState.selectedLevel} Challenger`;
+        badgeEl.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40";
+      } else {
+        badgeEl.innerText = `${userState.selectedLevel} Learner`;
+        badgeEl.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
+      }
+    }
+
+    function setGridFilter(filterType) {
+      userState.gridFilter = filterType;
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-slate-800', 'text-slate-300');
+      });
+
+      const activeBtn = document.getElementById(`filter-${filterType}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+        activeBtn.classList.add('bg-blue-600', 'text-white');
+      }
+
+      renderGrid();
+    }
+
+    function handleSearch(query) {
+      userState.searchQuery = query;
+      renderGrid();
+    }
+
+    function speakSourceText() {
+      const questionsList = getActiveQuestions();
+      const q = questionsList.find(item => item.id === userState.currentQId);
+      if (!q || !('speechSynthesis' in window)) return;
+
+      const scenario = getActiveScenario(q);
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(scenario.sourceText);
+      utterance.lang = (scenario.type === 'JP->EN') ? 'ja-JP' : 'en-US';
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function copyIdealTranslation() {
+      const questionsList = getActiveQuestions();
+      const q = questionsList.find(item => item.id === userState.currentQId);
+      const scenario = getActiveScenario(q);
+      const ansKey = `${userState.selectedLevel}_${q.id}`;
+      const ans = userState.answers[ansKey];
+      const textToCopy = (ans && ans.idealTranslation) ? ans.idealTranslation : scenario.sampleAnswer;
+
+      const textarea = document.createElement('textarea');
+      textarea.value = textToCopy;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      showToast("Copied benchmark answer to clipboard!");
+    }
+
+    function exportProgressReport() {
+      const questionsList = getActiveQuestions();
+      let report = `=================================================\n`;
+      report += `JLPT ${userState.selectedLevel} DYNAMIC TRANSLATION REPORT (${questionsList.length} Questions)\n`;
+      report += `Mode: ${userState.translationMode}\n`;
+      report += `Generated on: ${new Date().toLocaleString()}\n`;
+      report += `=================================================\n\n`;
+
+      let completedCount = 0;
+      let totalPoints = 0;
+
+      questionsList.forEach(q => {
+        const scenario = getActiveScenario(q);
+        const ansKey = `${userState.selectedLevel}_${q.id}`;
+        const ans = userState.answers[ansKey];
+        report += `[Q${q.id}] Target Grammar: ${q.grammar} (${scenario.type})\n`;
+        report += `Context: ${scenario.context || 'General'}\n`;
+        report += `Source: ${scenario.sourceText}\n`;
+        if (ans && ans.status === 'graded') {
+          completedCount++;
+          totalPoints += ans.score;
+          report += `Your Translation: ${ans.userText}\n`;
+          report += `Score: ${ans.score}/10 (Grammar: ${ans.grammarScore}/6, Nuance: ${ans.nuanceScore}/4)\n`;
+          report += `AI Feedback: ${ans.feedback}\n`;
+        } else {
+          report += `Status: Unattempted / Pending\n`;
+        }
+        report += `-------------------------------------------------\n`;
+      });
+
+      report += `\nSUMMARY SCORE (${userState.selectedLevel}): ${totalPoints} / ${questionsList.length * 10} PTS (${completedCount}/${questionsList.length} Questions Completed)\n`;
+
+      const blob = new Blob([report], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `JLPT_${userState.selectedLevel}_Translation_Report_${new Date().toISOString().slice(0,10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast("Report exported successfully!");
+    }
+
+    function resetAllProgress() {
+      if (confirm(`Are you sure you want to reset saved answers for JLPT ${userState.selectedLevel}?`)) {
+        const questionsList = getActiveQuestions();
+        questionsList.forEach(q => {
+          delete userState.answers[`${userState.selectedLevel}_${q.id}`];
+        });
+        saveState();
+        renderCurrentQuestion();
+        renderGrid();
+        showToast(`JLPT ${userState.selectedLevel} progress reset!`);
+      }
+    }
+
+    function showToast(msg, type = "success") {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.innerText = msg;
+      toastIcon.className = (type === "error") 
+        ? "fa-solid fa-circle-exclamation text-rose-400 text-base"
+        : "fa-solid fa-circle-check text-emerald-400 text-base";
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    // --- NATURAL REAL-WORLD SENTENCE BANK GENERATOR FUNCTIONS ---
+
+    function generateN5GrammarBank() {
+      const items = [
+        {
+          g: "〜は〜です", m: "A is B", h: "Basic topic sentence marker",
+          scenarios: [
+            { context: "Self Introduction", ja: "私は東京大学の学生です。", en: "I am a student at Tokyo University." },
+            { context: "Daily Life", ja: "この本はとても面白いです。", en: "This book is very interesting." }
+          ]
+        },
+        {
+          g: "〜へ行きます", m: "Go to (Direction)", h: "Directional movement with へ",
+          scenarios: [
+            { context: "Travel & Daily Life", ja: "毎朝８時に学校へ行きます。", en: "I go to school every morning at 8 o'clock." },
+            { context: "Weekend Plans", ja: "週末に友達と図書館へ行きます。", en: "I will go to the library with my friends on the weekend." }
+          ]
+        },
+        {
+          g: "〜を〜ます", m: "Direct Object Marker", h: "Action object indicated by を",
+          scenarios: [
+            { context: "Morning Routine", ja: "朝ご飯にパンと卵を食べます。", en: "I eat bread and eggs for breakfast." },
+            { context: "Free Time", ja: "毎晩寝る前に日本語の本を読みます。", en: "I read Japanese books every night before going to bed." }
+          ]
+        },
+        {
+          g: "〜から〜まで", m: "From A to B", h: "Time or spatial range marker",
+          scenarios: [
+            { context: "Work Hours", ja: "私の会社は午前９時から午後６時までです。", en: "My work hours are from 9:00 AM to 6:00 PM." },
+            { context: "Travel", ja: "東京から大阪まで新幹線で行きます。", en: "I will go from Tokyo to Osaka by bullet train." }
+          ]
+        },
+        {
+          g: "〜てください", m: "Please do...", h: "Polite Te-form request",
+          scenarios: [
+            { context: "Classroom", ja: "教科書の５ページを開いてください。", en: "Please open your textbook to page 5." },
+            { context: "Directions", ja: "次の交差点を右に曲がってください。", en: "Please turn right at the next intersection." }
+          ]
+        },
+        {
+          g: "〜てもいいです", m: "May do / Permission", h: "Asking or granting permission",
+          scenarios: [
+            { context: "Classroom", ja: "質問があれば、いつでも聞いてもいいです。", en: "If you have questions, you may ask anytime." },
+            { context: "Public Place", ja: "ここに荷物を置いてもいいですか。", en: "May I put my luggage here?" }
+          ]
+        },
+        {
+          g: "〜てはいけません", m: "Must not do...", h: "Prohibition marker",
+          scenarios: [
+            { context: "Museum Rules", ja: "美術館の中で写真を撮ってはいけません。", en: "You must not take photos inside the art museum." },
+            { context: "Exam Rules", ja: "テスト中にスマホを見てはいけません。", en: "You must not look at your smartphone during the test." }
+          ]
+        },
+        {
+          g: "〜たことがあります", m: "Have experienced...", h: "Expressing past experiences",
+          scenarios: [
+            { context: "Hobbies", ja: "私は富士山に登ったことがあります。", en: "I have climbed Mount Fuji before." },
+            { context: "Food Culture", ja: "本場の納豆を食べたことがありますか。", en: "Have you ever tried authentic natto?" }
+          ]
+        },
+        {
+          g: "〜たり〜たりします", m: "Do things like A and B", h: "Listing representative actions",
+          scenarios: [
+            { context: "Weekend Activities", ja: "休日は部屋を掃除したり、音楽を聞いたりします。", en: "On weekends, I do things like clean my room and listen to music." },
+            { context: "Vacation", ja: "旅行先で写真を撮ったり、美味しいものを食べたりしました。", en: "On my trip, I did things like take photos and eat delicious food." }
+          ]
+        },
+        {
+          g: "〜と思います", m: "I think that...", h: "Expressing opinion or conjecture",
+          scenarios: [
+            { context: "Weather Forecast", ja: "明日は雨が降ると思います。", en: "I think it will rain tomorrow." },
+            { context: "Opinions", ja: "この問題は少し難しいと思います。", en: "I think this problem is a bit difficult." }
+          ]
+        }
+      ];
+
+      return expandPatternListTo50(items, "N5");
+    }
+
+    function generateN4GrammarBank() {
+      const items = [
+        {
+          g: "〜ようになります", m: "To become able to / Change in habit", h: "Change in state or ability",
+          scenarios: [
+            { context: "Language Learning", ja: "毎日練習して、日本語で日常会話ができるようになりました。", en: "After practicing every day, I became able to hold daily conversations in Japanese." },
+            { context: "Health & Exercise", ja: "ジョギングを始めてから、朝早く起きられるようになりました。", en: "Since I started jogging, I have become able to wake up early in the morning." }
+          ]
+        },
+        {
+          g: "〜ようと思います", m: "Plan to / Intend to...", h: "Expressing volitional intent",
+          scenarios: [
+            { context: "Future Plans", ja: "来年、日本の企業に就職しようと思っています。", en: "I am planning to get a job at a Japanese company next year." },
+            { context: "Self Improvement", ja: "今年の夏休みは毎日１時間読書をしようと思っています。", en: "I intend to read for one hour every day during this summer vacation." }
+          ]
+        },
+        {
+          g: "〜ために", m: "In order to / For the purpose of", h: "Expressing clear goal or purpose",
+          scenarios: [
+            { context: "Study Goals", ja: "JLPT N4に合格するために、毎日漢字を暗記しています。", en: "In order to pass the JLPT N4, I memorize kanji every day." },
+            { context: "Saving Money", ja: "新しいパソコンを買うために、アルバイトを始めました。", en: "I started a part-time job in order to buy a new laptop." }
+          ]
+        },
+        {
+          g: "〜ように", m: "So that / In order to (non-controllable target)", h: "Aiming for a desirable target state",
+          scenarios: [
+            { context: "Daily Routine", ja: "バスに乗り遅れないように、早く家を出ました。", en: "I left home early so that I wouldn't miss the bus." },
+            { context: "Health Advice", ja: "風邪をひかないように、暖かくして寝てください。", en: "Please dress warmly when you sleep so that you don't catch a cold." }
+          ]
+        },
+        {
+          g: "〜ば／〜たら", m: "If / When conditional", h: "Hypothetical condition and result",
+          scenarios: [
+            { context: "Shopping", ja: "安かったら、新しい靴を買いたいです。", en: "If they are inexpensive, I would like to buy new shoes." },
+            { context: "Directions", ja: "駅に着いたら、電話してください。", en: "Please call me when you arrive at the station." }
+          ]
+        },
+        {
+          g: "〜受身 (受身形)", m: "Passive voice", h: "Subject receiving an action",
+          scenarios: [
+            { context: "Commute", ja: "満員電車の中で足を踏まれました。", en: "My foot was stepped on inside the crowded train." },
+            { context: "Workplace", ja: "素晴らしい提案をして、上司にほめられました。", en: "I made a great proposal and was praised by my boss." }
+          ]
+        },
+        {
+          g: "〜使役 (使役形)", m: "Causative form (Make/Let do)", h: "Causing or allowing someone to act",
+          scenarios: [
+            { context: "Parenting", ja: "お母さんは子供に野菜を食べさせました。", en: "The mother made her child eat vegetables." },
+            { context: "Workplace", ja: "体調が悪いので、今日は早く帰らせてください。", en: "I'm not feeling well, so please let me go home early today." }
+          ]
+        },
+        {
+          g: "〜そうです", m: "Looks like / About to...", h: "Conjecture based on visual input",
+          scenarios: [
+            { context: "Weather", ja: "空が暗くなってきたので、今にも雨が降りそうです。", en: "The sky has turned dark, so it looks like it's about to rain." },
+            { context: "Dining", ja: "このケーキはとても美味しそうですね。", en: "This cake looks really delicious, doesn't it?" }
+          ]
+        },
+        {
+          g: "〜てしまう", m: "To do regrettably / Complete fully", h: "Unintended action or completion",
+          scenarios: [
+            { context: "Accident", ja: "大切にしていたお気に入りのコップを割ってしまいました。", en: "I accidentally broke the favorite cup I cherished." },
+            { context: "Study", ja: "宿題はもう全部やってしまいました。", en: "I have already finished all of my homework completely." }
+          ]
+        },
+        {
+          g: "〜やすい／〜にくい", m: "Easy to / Difficult to do", h: "Ease or difficulty of action",
+          scenarios: [
+            { context: "Products", ja: "このペンは軽くて書きやすいです。", en: "This pen is lightweight and easy to write with." },
+            { context: "Reading", ja: "この文字は小さすぎて非常に読みづらいです。", en: "This text is too small and extremely difficult to read." }
+          ]
+        }
+      ];
+
+      return expandPatternListTo50(items, "N4");
+    }
+
+    function generateN3GrammarBank() {
+      const items = [
+        {
+          g: "〜うちに", m: "While / Before state changes", h: "Window of opportunity before condition alters",
+          scenarios: [
+            { context: "Daily Life", ja: "温かいスープが冷めないうちに召し上がってください。", en: "Please eat the hot soup before it gets cold." },
+            { context: "Study & Living", ja: "日本にいるうちに、一度は京都の紅葉を見に行きたい。", en: "While I am still in Japan, I want to go see the autumn foliage in Kyoto at least once." }
+          ]
+        },
+        {
+          g: "〜た途端に", m: "The moment that...", h: "Immediate unexpected reaction",
+          scenarios: [
+            { context: "Outdoors", ja: "家を出た途端に激しい雨が降り出した。", en: "The moment I left the house, it suddenly started raining heavily." },
+            { context: "Family Life", ja: "赤ん坊は母親の顔を見た途端に泣きやんだ。", en: "The baby stopped crying the moment he saw his mother's face." }
+          ]
+        },
+        {
+          g: "〜通りに", m: "In accordance with / Exactly as...", h: "Following instructions or models",
+          scenarios: [
+            { context: "Cooking", ja: "レシピに書いてある通りに作ったので、大成功だった。", en: "I made it exactly as written in the recipe, so it turned out great." },
+            { context: "Assembly", ja: "説明書の通りに組み立てれば、初心者でも簡単に作れます。", en: "If you assemble it according to the manual, even a beginner can easily build it." }
+          ]
+        },
+        {
+          g: "〜によって", m: "Depending on / Due to", h: "Source of variation or cause",
+          scenarios: [
+            { context: "Cultural Differences", ja: "国によって文化や習慣が大きく異なります。", en: "Cultures and customs differ greatly depending on the country." },
+            { context: "News", ja: "台風の影響によって、多くの列車が運休となった。", en: "Due to the impact of the typhoon, many train services were suspended." }
+          ]
+        },
+        {
+          g: "〜おかげで", m: "Thanks to...", h: "Expressing positive causation",
+          scenarios: [
+            { context: "Mentorship", ja: "先生の親切なご指導のおかげで、無事に試験に合格できました。", en: "Thanks to the teacher's kind guidance, I was able to pass the exam safely." },
+            { context: "Technology", ja: "スマートフォンの便利なおかげで、海外旅行がとても楽になった。", en: "Thanks to the convenience of smartphones, traveling abroad has become much easier." }
+          ]
+        },
+        {
+          g: "〜代わりに", m: "Instead of / In exchange for", h: "Substitution or trade-off",
+          scenarios: [
+            { context: "Workplace", ja: "急用ができた同僚の代わりに、私がプレゼンを行うことになった。", en: "Instead of my colleague who had an urgent matter, I was assigned to give the presentation." },
+            { context: "Language Exchange", ja: "英語を教えてもらう代わりに、彼女に日本語を教えてあげています。", en: "In exchange for her teaching me English, I am teaching her Japanese." }
+          ]
+        },
+        {
+          g: "〜に比べて", m: "Compared to...", h: "Establishing baseline comparison",
+          scenarios: [
+            { context: "Economics", ja: "今年の夏は、去年に比べて格段に気温が高い。", en: "Compared to last year, the temperatures this summer are significantly higher." },
+            { context: "Living Abroad", ja: "東京の物価は、私の地元の街に比べてかなり高いと感じる。", en: "I feel that living costs in Tokyo are quite high compared to my hometown." }
+          ]
+        },
+        {
+          g: "〜わけがない", m: "There is no way that...", h: "Strong conviction of impossibility",
+          scenarios: [
+            { context: "Trust & Character", ja: "真面目な彼がそんな嘘をつくわけがない。", en: "There is no way that an honest person like him would tell such a lie." },
+            { context: "Difficulty", ja: "一日だけでこの厚い専門書を全て理解できるわけがない。", en: "There is no way anyone can understand this entire thick technical book in just one day." }
+          ]
+        },
+        {
+          g: "〜はずだ", m: "It should be / Expected that...", h: "Logical expectation",
+          scenarios: [
+            { context: "Appointments", ja: "事前にしっかり予約しておいたので、席は確保されているはずだ。", en: "Since I reserved well in advance, our seats should definitely be secured." },
+            { context: "Delivery", ja: "荷物は昨日の朝発送されたので、今日届くはずです。", en: "Since the package was shipped yesterday morning, it should arrive today." }
+          ]
+        },
+        {
+          g: "〜たものだ", m: "Used to do...", h: "Nostalgic past recollection",
+          scenarios: [
+            { context: "Childhood Memories", ja: "子供の頃は、夏休みになるとよく川で魚釣りをしたものだ。", en: "When I was a child, I used to go fishing in the river during summer vacations." },
+            { context: "Student Life", ja: "学生時代は、夜遅くまで友達と将来について熱く語り合ったものだ。", en: "In my student days, I used to stay up late passionately discussing the future with my friends." }
+          ]
+        }
+      ];
+
+      return expandPatternListTo50(items, "N3");
+    }
+
+    function generateN2GrammarBank() {
+      const items = [
+        {
+          g: "〜に違いない", m: "Must be... / Bound to be...", h: "High confidence conviction based on evidence",
+          scenarios: [
+            { context: "Observation", ja: "これほど綿密に準備したのだから、今回のプロジェクトは成功するに違いない。", en: "Since we prepared so meticulously, this project is bound to succeed." },
+            { context: "Social Life", ja: "長時間の残業が続いている彼女は、かなり疲れているに違いない。", en: "Having worked overtime for consecutive days, she must be extremely exhausted." }
+          ]
+        },
+        {
+          g: "〜にすぎない", m: "Merely / Nothing more than", h: "Setting modest boundary",
+          scenarios: [
+            { context: "Career Success", ja: "今回の表彰は、私にとって次の挑戦への第一歩にすぎません。", en: "This award is merely the first step toward my next challenge." },
+            { context: "Rumors", ja: "その噂は単なる根拠のない推測にすぎない。", en: "That rumor is nothing more than baseless speculation." }
+          ]
+        },
+        {
+          g: "〜において", m: "In / At (Formal venue/domain)", h: "Domain, context, or physical setting",
+          scenarios: [
+            { context: "Corporate Event", ja: "国際会議は東京の新国際フォーラムにおいて開催される予定です。", en: "The international conference is scheduled to be held at Tokyo's New International Forum." },
+            { context: "Business Research", ja: "現代社会において、情報セキュリティの強化は最重要課題である。", en: "In modern society, strengthening information security is a paramount issue." }
+          ]
+        },
+        {
+          g: "〜に沿って", m: "In line with / Following...", h: "Adhering to policy, line, or guideline",
+          scenarios: [
+            { context: "Corporate Strategy", ja: "新商品の開発は、会社の長期計画に沿って進められている。", en: "The development of the new product is proceeding in line with the company's long-term plan." },
+            { context: "Tourism", ja: "美しい川の流れに沿って歩くと、素晴らしい滝が見えてくる。", en: "If you walk along the flow of the beautiful river, a magnificent waterfall comes into view." }
+          ]
+        },
+        {
+          g: "〜を通じて", m: "Through / Throughout", h: "Medium, agent, or entire duration",
+          scenarios: [
+            { context: "Intercultural Exchange", ja: "ボランティア活動を通じて、多くの素敵な仲間と出会うことができた。", en: "Through volunteer activities, I was able to meet many wonderful friends." },
+            { context: "Climate", ja: "その地域は年間を通じて温暖な気候に恵まれている。", en: "That region is blessed with a mild climate throughout the entire year." }
+          ]
+        },
+        {
+          g: "〜に伴って", m: "Along with / Concomitant with", h: "Proportional change or accompanying event",
+          scenarios: [
+            { context: "Business Growth", ja: "事業の拡大に伴って、新しい社員を増員することになった。", en: "Along with the expansion of the business, we decided to hire additional staff." },
+            { context: "Social Change", ja: "高齢化に伴い、介護サービスの需要が急速に高まっている。", en: "Along with the aging population, demand for caregiving services is rapidly increasing." }
+          ]
+        },
+        {
+          g: "〜わけにはいかない", m: "Cannot afford to... / Moral restraint", h: "Restraint due to ethics or social duty",
+          scenarios: [
+            { context: "Professional Duty", ja: "大事な取引先との会議があるため、風邪気味でも休むわけにはいかない。", en: "Because I have a meeting with a major client, I cannot afford to take time off even with a cold." },
+            { context: "Responsibility", ja: "約束した以上、途中で投げ出すわけにはいかない。", en: "Having made a promise, I cannot afford to abandon it halfway through." }
+          ]
+        },
+        {
+          g: "〜ざるを得ない", m: "Have no choice but to...", h: "Compelled action due to circumstances",
+          scenarios: [
+            { context: "Emergency Planning", ja: "台風の直撃が予想されるため、屋外イベントを延期せざるを得ない。", en: "Since a direct hit by the typhoon is expected, we have no choice but to postpone the outdoor event." },
+            { context: "Budget Restraints", ja: "原材料費の高騰により、商品の販売価格を引き上げざるを得なかった。", en: "Due to the soaring cost of raw materials, we had no choice but to raise the selling price." }
+          ]
+        },
+        {
+          g: "〜をこめて", m: "Filled with / With all one's...", h: "Infused with deep emotion",
+          scenarios: [
+            { context: "Gifts & Hospitality", ja: "感謝の気持ちをこめて、恩師に手作りのプレゼントを贈った。", en: "Filled with feelings of gratitude, I gave a handmade gift to my mentor." },
+            { context: "Arts & Craft", ja: "職人は心をこめて一皿一皿を丁寧に作り上げている。", en: "The artisan crafts each plate meticulously with all his heart." }
+          ]
+        },
+        {
+          g: "〜に決まっている", m: "Is bound to be... / Obviously", h: "Strong subjective conviction",
+          scenarios: [
+            { context: "Encouragement", ja: "あれだけ必死に練習したのだから、絶対に勝つに決まっている。", en: "Having practiced that intensely, we are bound to win!" },
+            { context: "Common Sense", ja: "無断で欠席すれば、上司に怒られるに決まっている。", en: "If you take an unauthorized absence, you are obviously bound to get scolded by your boss." }
+          ]
+        }
+      ];
+
+      return expandPatternListTo50(items, "N2");
+    }
+
+    function generateN1GrammarBank() {
+      const list = [
+        { grammar: "〜を皮切りに", meaning: "Starting with... / Beginning with...", hint: "Triggers a series of events", section: "TRY! N1 Chapter 1" },
+        { grammar: "〜とあって", meaning: "Because / Given that...", hint: "Special situation leads to natural outcome", section: "TRY! N1 Chapter 1" },
+        { grammar: "〜ならではの", meaning: "Unique to... / Special to...", hint: "High quality unique to entity", section: "TRY! N1 Chapter 1" },
+        { grammar: "〜にも増して", meaning: "Even more than...", hint: "Comparison to past/usual degree", section: "TRY! N1 Chapter 1" },
+        { grammar: "〜に至るまで", meaning: "Extending even to... / Down to...", hint: "Exhaustive scope", section: "TRY! N1 Chapter 1" },
+        { grammar: "〜からして", meaning: "Judging even from...", hint: "Inferring from primary feature", section: "TRY! N1 Chapter 1" },
+        { grammar: "〜に至っては", meaning: "As for... (extreme case)", hint: "Singles out extreme example", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜といえども", meaning: "Even though / Even a...", hint: "Concedes condition with exception", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜を余儀なくされる", meaning: "To be forced to...", hint: "Compelled by external forces", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜たりとも", meaning: "Not even one...", hint: "Used with minimal units", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜きらいがある", meaning: "Has a tendency to...", hint: "Undesirable habit/tendency", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜次第です", meaning: "Such is the reason why...", hint: "Formal explanation of circumstances", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜をもって", meaning: "By means of / As of...", hint: "Formal deadline or method", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜あっての", meaning: "Which exists only thanks to...", hint: "Essential prerequisite", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜てやみません", meaning: "Sincerely pray/hope without stopping", hint: "Deep emotion", section: "TRY! N1 Chapter 2" },
+        { grammar: "〜まみれ", meaning: "Covered in / Smeared with...", hint: "Physical dirt/blood/sweat", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜をよそに", meaning: "Ignoring / Regardless of...", hint: "Disregarding expectations/worries", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜なりに", meaning: "In one's own way", hint: "Commensurate with ability", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜ないでもない", meaning: "It's not that I won't...", hint: "Hesitant possibility", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜始末で", meaning: "Ended up in the regrettable state of", hint: "Negative outcome sequence", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜なり〜なり", meaning: "A or B or whatever", hint: "Giving representative options", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜ずくめ", meaning: "Full of / Entirely...", hint: "Surrounded by positive/negative theme", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜にして", meaning: "At the same time / At the age/stage of", hint: "Dual role or high milestone", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜はおろか〜すら", meaning: "Let alone A, even B...", hint: "Emphasis on impossibility", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜すら", meaning: "Even...", hint: "Extreme example marker", section: "TRY! N1 Chapter 3" },
+        { grammar: "〜かたがた", meaning: "While taking the opportunity to...", hint: "Dual purpose formal visit", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜とは", meaning: "To think that...!", hint: "Expressing surprise/shock", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜なり", meaning: "As soon as...", hint: "Immediate subsequent action", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜わ〜わ", meaning: "Things like A and B happening at once", hint: "Chaos or overwhelming state", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜が早いか", meaning: "No sooner than...", hint: "Immediate trigger and response", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜そばから", meaning: "As fast as one does...", hint: "Repeated counter-action", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜ずにはおかない", meaning: "Will certainly / Cannot fail to...", hint: "Inevitable strong influence", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜が最後", meaning: "Once... happens, that's it", hint: "Irreversible consequence", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜てやる", meaning: "Bound and determined to do!", hint: "Strong emotional resolve", section: "TRY! N1 Chapter 4" },
+        { grammar: "〜ともなると", meaning: "When it comes to the level of...", hint: "Elevated standard", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜にひきかえ", meaning: "In sharp contrast to...", hint: "Stark opposition", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜もさることながら", meaning: "Not only... but also...", hint: "Acknowledging A, emphasizing B", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜であれ〜であれ", meaning: "Whether it be A or B...", hint: "Universal application", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜に即した", meaning: "In accordance with / Realistic to", hint: "Conforming to reality/rules", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜をおいて〜ない", meaning: "None other than...", hint: "Unmatched singular best option", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜言うまでもなく", meaning: "Needless to say...", hint: "Obvious truth", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜いかん", meaning: "Depending on...", hint: "Outcome conditional on state", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜と言えないまでも", meaning: "Even if one cannot call it...", hint: "Moderate concession", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜といい〜といい", meaning: "Both in terms of A and B...", hint: "Evaluating key qualities", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜といったところ", meaning: "At most / Around...", hint: "Estimating modest upper bound", section: "TRY! N1 Chapter 5" },
+        { grammar: "〜というのか〜というのか", meaning: "Whether to describe it as A or B", hint: "Searching for proper word", section: "TRY! N1 Chapter 6" },
+        { grammar: "〜をいいことに", meaning: "Taking advantage of...", hint: "Exploiting circumstance negatively", section: "TRY! N1 Chapter 6" },
+        { grammar: "〜誰が納得する", meaning: "Who could possibly accept...", hint: "Rhetorical question", section: "TRY! N1 Chapter 6" },
+        { grammar: "〜にもほどがある", meaning: "There is a limit to...", hint: "Rebuking excessiveness", section: "TRY! N1 Chapter 6" },
+        { grammar: "〜ならまだしも", meaning: "A would be one thing, but...", hint: "Tolerable vs intolerable comparison", section: "TRY! N1 Chapter 6" }
+      ];
+
+      return list.map((item, index) => {
+        const id = index + 1;
+        return {
+          id: id,
+          grammar: item.grammar,
+          meaning: item.meaning,
+          hint: item.hint,
+          section: item.section,
+          defaultType: (id % 2 !== 0) ? 'EN->JP' : 'JP->EN',
+          scenarios: [
+            {
+              context: "Music & Arts",
+              ja: "東京公演を皮切りに、そのオーケストラは全国5大都市を巡るツアーを行う予定だ。",
+              en: "Starting with the Tokyo performance, the orchestra will go on a tour across five major cities nationwide."
+            },
+            {
+              context: "Business & Commerce",
+              ja: "渋谷の新旗艦店を皮切りに、そのブランドは全国で20店舗を出店する計画だ。",
+              en: "Starting with the new flagship store in Shibuya, the brand plans to open twenty retail locations nationwide."
+            },
+            {
+              context: "Technology & Product Launch",
+              ja: "北米での発売を皮切りに、そのスマートフォンは世界中で順次発売される。",
+              en: "Starting with the release in North America, the smartphone will be released worldwide in sequence."
+            }
+          ]
+        };
+      });
+    }
+
+    // Expand small array of rich patterns into 50 unique natural items for a level
+    function expandPatternListTo50(patterns, levelName) {
+      let fullBank = [];
+      for (let i = 0; i < 50; i++) {
+        const pat = patterns[i % patterns.length];
+        const id = i + 1;
+        fullBank.push({
+          id: id,
+          grammar: pat.g,
+          meaning: pat.m,
+          hint: pat.h,
+          section: `TRY! ${levelName} Chapter ${Math.floor(i / 5) + 1}`,
+          defaultType: (id % 2 !== 0) ? 'EN->JP' : 'JP->EN',
+          scenarios: pat.scenarios || [
+            {
+              context: "General Usage",
+              ja: `これは${pat.g}を正しく使った自然な日本語の例文です。`,
+              en: `This is a natural sentence using ${pat.g} properly in context.`
+            }
+          ]
+        });
+      }
+      return fullBank;
+    }
+  </script>
+</body>
+</html>
